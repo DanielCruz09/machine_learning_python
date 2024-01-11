@@ -216,3 +216,40 @@ ConfusionMatrixDisplay.from_predictions(y_train, y_train_pred,
 
 '''---------------------Multilabel Classification-------------------------'''
 
+import numpy as np
+from sklearn.neighbors import KNeighborsClassifier
+
+# Checking if a digit is large (greater or equal to 7)
+y_train_large = (y_train >= '7')
+# Checking if a digit is odd
+y_train_odd = (y_train.astype('int8') % 2 == 1)
+y_multilabel = np.c_[y_train_large, y_train_odd]
+knn_clf = KNeighborsClassifier()
+knn_clf.fit(x_train, y_multilabel)
+knn_clf.predict([some_digit])
+y_train_knn_pred = cross_val_predict(knn_clf, x_train, y_multilabel, cv=3)
+# print(f1_score(y_multilabel, y_train_knn_pred, average="macro")) # 0.976410265560605
+
+from sklearn.multioutput import ClassifierChain
+
+chain_clf = ClassifierChain(SVC(), cv=3, random_state=42)
+chain_clf.fit(x_train[:2000], y_train[:2000])
+chain_clf.predict([some_digit])
+
+'''------------------------Multioutput Classification---------------------------'''
+
+# Creating a clean image from a noisy one
+np.random.seed(42)
+noise = np.random.randint(0, 100, (len(x_train), 784))
+x_train_mod = x_train + noise
+noise = np.random.randint(0, 100, (len(x_test), 784))
+x_test_mod = x_test + noise
+y_train_mod = x_train
+y_test_mod = x_test
+
+knn_clf = KNeighborsClassifier()
+knn_clf.fit(x_train_mod, y_train_mod)
+clean_digit = knn_clf.predict([x_test_mod[0]])
+plot_digit(clean_digit)
+# plt.show()
+
